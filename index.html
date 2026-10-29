@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><title>Генератор туров</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#eef2f3;--card:#fff;--ink:#1d2b30;--mut:#627278;--acc:#1f5b6e;--line:#d3dcdf;--warn:#b4552d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{background:var(--acc);color:#fff;padding:12px 20px;font-size:17px;font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hb{border-color:#fff;background:transparent;color:#fff;padding:5px 12px;font-weight:500}.hb:hover{background:rgba(255,255,255,.18)}
+header button:focus-visible{outline-color:#fff}
+.day .row{flex-wrap:wrap}.day select{min-width:170px}
+main{display:grid;grid-template-columns:minmax(380px,1fr) minmax(380px,1fr);gap:16px;padding:16px;align-items:start}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 10px}
+input,select,textarea,button{font:inherit;color:inherit}
+input[type=text],select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:#fff}
+textarea{min-height:110px;resize:vertical}
+button{border:1px solid var(--acc);background:#fff;color:var(--acc);border-radius:6px;padding:6px 12px;cursor:pointer}
+button.p{background:var(--acc);color:#fff}button.d{border-color:var(--warn);color:var(--warn)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}.row>*{flex:0 0 auto}.row .g{flex:1}
+.day{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.day b{display:block;margin-bottom:6px}
+.chk{display:flex;gap:8px;align-items:center;margin-bottom:6px}.chk input[type=text]{flex:1}
+.foot textarea{min-height:80px;margin-top:4px}
+#prev{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;font:15px/1.5 Georgia,serif}
+#prev p{margin:0 0 .6em}#prev ul{margin:0 0 .8em;padding-left:1.3em}#prev .h{font-weight:700;margin-top:1em}
+.mut{color:var(--mut);font-size:12px}
+</style></head><body>
+<header><span style="flex:1">Генератор туров</span><button class="hb" onclick="exportWord()">Word экспорт</button><button class="hb" onclick="newProg()">Обновить</button></header>
+<main>
+<div>
+ <section><h2>Дни тура</h2>
+  <div class="row"><input type="text" id="nd" class="g" placeholder="Дата: 08.10.2026"><button class="p" onclick="addDay()">Добавить день</button></div>
+  <div class="mut">Формат даты ДД.ММ.ГГГГ. День недели и номер дня ставятся автоматически.</div>
+  <div id="days"></div></section>
+ <section><h2>Включено / не включено</h2>
+  <div class="mut" style="margin-bottom:8px">Галочка = «Included», без галочки = «Not included».</div>
+  <div id="items"></div>
+  <div class="row"><input type="text" id="ni" class="g" placeholder="Новый пункт"><button onclick="addItem()">Добавить</button></div></section>
+ <section><h2>Тексты в конце письма</h2><div id="foot"></div></section>
+ <button class="d" onclick="if(confirm('Удалить все дни и сбросить изменения?')){localStorage.removeItem('tg');location.reload()}">Сбросить всё</button>
+</div>
+<div><section><h2>Готовый текст</h2>
+ <div class="row"><button class="p" onclick="copyAll()">Копировать для письма</button><span class="mut" id="msg"></span></div>
+ <div id="prev"></div></section></div>
+</main>
+<script>
+const T={
+"Ташкент":[
+["Обзорная экскурсия (5 ч)",`A guide and driver will pick you up from the hotel to begin your city tour of Tashkent. Your private tour will include:
+
+* Excursion to the Old City, including the Khazret-Imam Architectural Complex. The complex includes the Madrasah of Barak-Khan (16th century), Tillya-Sheykh Mosque, Juma Mosque and Mausoleum of Saint Abu Bakr Kaffal Shashi (15th century). Walking through the Islamic Civilization Center and Zarqaynar street;
+* Visit to Chorsu Bazaar, Tashkent’s most well-established bazaar that includes a large selection of traditional Uzbek ceramics, jewelry, handbags, garments and more;
+* Ride on the Tashkent Metro, an immaculate subway system with each station decorated in colored mosaics and ceramics to depict a specific theme;
+* Walk through Amir Timur Square, with a massive statue of none other than Tamerlane himself at the center;
+* Independence Square, including the moving Mourning Mother Monument and the Eternal Flame, burning continuously in memory of more than half a million Uzbek soldiers who died during World War II;
+* Drive to the Sacred Heart Cathedral, a 20th-century Roman Catholic Church with beautiful stained-glass windows and Gothic-style architecture;
+* Tour of the Uzbekistan History Museum, a four-story museum with over a quarter million exhibits.
+
+Tour duration: approximately 5 hours. Drop-off at hotel. Overnight in Tashkent.`],
+["Обзорная экскурсия (6 ч, с музеем)",`After breakfast, at 09:00 your guide and driver will pick you up from your hotel to your Tashkent city tour. Your private tour will include:
+
+* Tour of the Applied Arts Museum, an informative collection of Uzbekistan’s finest handicrafts housed in an ornately decorated villa;
+* Walk through Amir Timur Square and Independence Square;
+* Ride on the Tashkent Metro, an immaculate subway system with each station decorated in colored mosaics and ceramics to depict a specific theme;
+* Excursion to the Old City, including the Khazret-Imam Architectural Complex. The complex includes the Madrasah of Barak-Khan (16th century), Tillya-Sheykh Mosque, Juma Mosque and Mausoleum of Saint Abu Bakr Kaffal Shashi (15th century). Walking through the Islamic Civilization Center and Zarqaynar street;
+* Visit to Chorsu Bazaar, Tashkent’s most well-established bazaar that includes a large selection of traditional Uzbek ceramics, jewelry, handbags, garments and more.
+
+Tour duration: 6 hours. Overnight in Tashkent.`],
+["Свободный день",`After breakfast at your hotel, set out independently to discover a different side of Tashkent—combining Soviet modernism, modern parks, and local gastronomy:
+
+* Morning walk at Botanical Garden: Escape the city center and spend your morning wandering through one of the largest and oldest botanical gardens in Central Asia, featuring thousands of plant species from around the globe.
+* Explore TV Tower & Tashkent Central Park (Mirzo Ulugbek): Visit the nearby 375-meter-high Tashkent TV Tower for bird's-eye panoramic views of the entire city. Afterwards, take a relaxed stroll through the adjacent Central Park.
+* Lunch at Central Asian Plov Center (Besh Qozon): Head to this iconic culinary hub located near the TV Tower. Watch master chefs cook giant cauldrons (qazons) of authentic Uzbek plov over open fires, and join the locals for a traditional lunch.
+* Architecture tour of Soviet Modernism: Take a self-guided metro/taxi route to admire unique 20th-century architectural icons, including the iconic Hotel Uzbekistan, the mosaic-clad apartment blocks along Shota Rustaveli Street, and the futuristic State Museum of the Temurids.
+* Coffee & shopping at Alay Bazaar (Oloy Bozori): Visit one of Tashkent’s cleaner, modern markets for dried fruits, nuts, spices, and local sweets to bring back home. Enjoy a coffee break at one of the trendy modern cafes in the area.
+* Evening along the Ankhor Canal embankment: End your day with a relaxing stroll along the illuminated promenade of the Ankhor River channel, filled with local street food stalls and cozy outdoor tea houses (chaikhanas).
+
+Overnight in Tashkent.`],
+["Чимган – Чарвак",`Tashkent - Chimgan Mountains - Charvak Lake - Tashkent
+In the morning, your guide and driver will pick you up from your hotel and depart Tashkent for the Chimgan Mountains in Ugam-Chatkal National Park (100 km, approximately 2 hours). The drive will take you through picturesque surroundings, passing quaint villages, gardens and mountain streams. Along the way, you will stop at several scenic viewpoints for photos.
+Upon arrival in the Chimgan Mountains, enjoy a short walk among the mountain foliage and boulders before continuing to the shores of Charvak Reservoir. Take some time to relax and admire the magnificent mountain scenery surrounding the lake.
+Continue along the famous Serpentine Road and stop at a local restaurant for a hot lunch. Before returning to Tashkent, make a stop at the Ugam River, where you can dip your feet in the cool mountain waters and take some final photos.
+Your private tour will include:
+
+* Scenic drive through the villages, gardens and mountain landscapes on the way to the Chimgan Mountains;
+* Short walk in the Chimgan Mountains among the mountain foliage and boulders;
+* Visit to the shores of Charvak Reservoir and time to enjoy the panoramic views;
+* Drive along the famous Serpentine Road;
+* Lunch at a local restaurant;
+* Stop at the Ugam River to enjoy its cool mountain waters and take photos.
+
+Tour duration: 7 hours. Return to your hotel in Tashkent.`]],
+"Самарканд":[
+["Обзорная экскурсия (6–7 ч)",`At 09:00 following breakfast, begin your tour of Samarkand, a city at the crossroads of the world’s cultures. The private city tour, led by an experienced, local guide, will include the following:
+
+* Gur Emir, the imposing burial site of Tamerlane and Mirzo Ulugbek;
+* Registan Square, the commercial center of Samarkand for centuries and Samarkand’s most famous site today. The square includes three madrasahs: Ulugbek Madrasah (15th century), Sher-Dor Madrasah (17th century) and Tilla-Kori Madrasah (17th century);
+* Bibi Khanum Mosque, built by Tamerlane for his favorite wife;
+* Siab Bazaar, a multi-level complex where you can shop for souvenirs and sample sweets, fruits and Samarkand’s famous bread;
+* Shakhi-Zinda, a burial complex built between the 9th-14th centuries. Climb the blue-domed path and explore more than 20 small mausoleums that line the broad alleyway;
+* Ulugbek Observatory, where you can see the remains of a 14th-15th century sextant and tour the Ulugbek Museum.
+
+Tour duration: 6-7 hours. Drop-off at hotel. Overnight in Samarkand.`],
+["Афросиаб, Конигиль, ковры (5 ч)",`After breakfast, continue discovering Samarkand beyond its main landmarks with your local guide. Visit the following sites:
+
+* Afrosiab Museum and the Excavation Site of Ancient Samarkand, where you can explore the remains of the city's earliest settlement and admire unique archaeological artifacts, including the famous 7th-century wall paintings;
+* Khodja Daniyar Mausoleum, a revered pilgrimage site believed to be the resting place of the Prophet Daniel, respected by Muslims, Christians, and Jews alike. According to tradition, his remains were brought to Samarkand by Amir Timur;
+* Konigil Village, where you will observe the centuries-old process of producing the famous Samarkand paper by hand from mulberry bark using traditional techniques that have been preserved for generations;
+* Oriental Silk Carpet Factory, where skilled artisans demonstrate the intricate process of weaving handmade silk carpets using natural dyes and traditional Uzbek craftsmanship.
+
+Tour duration: approximately 5 hours. Drop-off at hotel. Overnight in Samarkand.`],
+["Свободный день",`After breakfast, enjoy a free day in Samarkand and discover the city at your own pace. We recommend visiting the following places independently:
+
+* Ruhabad Mausoleum, a small but historically significant mausoleum located near Gur Emir and dedicated to Sheikh Burhaniddin Sagarji;
+* Amir Timur Square and University Boulevard, a pleasant area for a leisurely walk through the modern and historic center of Samarkand;
+* Ishratkhana Mausoleum, a 15th-century architectural monument and one of the lesser-known historical sites of Samarkand;
+* Imam al-Bukhari Memorial Complex, an important religious and pilgrimage site dedicated to Imam al-Bukhari, located outside the city center;
+* Silk Road Samarkand Tourist Center, a modern leisure complex with canals, restaurants, cafés and beautifully landscaped areas, ideal for an evening walk;
+* Samarkand Wine Factory named after M. Khovrenko, where visitors can learn about the history of local winemaking and, subject to availability, join a wine tasting;
+* Evening Registan Square, offering a different atmosphere after sunset when the magnificent madrasahs are illuminated.
+
+Overnight in Samarkand`],
+["Шахрисабз",`After breakfast, at 09:00 meet your guide at the hotel lobby and drive to Shakhrisabz, a small yet historically significant town and the birthplace of Tamerlane. Located about 90 km from Samarkand, the journey takes approximately 2 hours and passes through the scenic Tahtakaracha Pass.
+Upon arrival, begin your private city tour of Shakhrisabz, which will include the following:
+
+* Downtown Shakhrisabz, known for its unique urban layout and traditional architecture;
+* Dorus Saodat Memorial Complex, which includes the Jahongir and Omar Sheikh Mausoleums and the 14th-century Khazratiy Imam Mosque;
+* Dor-ut Tilovat Ensemble, featuring the impressive Kok-Gumbaz Mosque (Blue-Domed Mosque) and the burial vault of Tamerlane’s father;
+* Ak-Saray Palace, the magnificent ruins of Tamerlane’s summer residence. Once considered an extraordinary architectural masterpiece by his contemporaries, the palace was one of the grandest buildings of the 14th-15th centuries.
+
+If traveling between April and October, you will also have the opportunity to watch the preparation of Shakhrisabz’s famous Tandir Go’sht, a traditional dish of meat cooked in a clay oven.
+After completing the city tour, drive back to Samarkand.
+Tour duration: approximately 7-8 hours. Drop-off at hotel in Samarkand.`]],
+"Бухара":[
+["Пешеходная экскурсия (6–7 ч)",`After breakfast, explore Bukhara on a walking tour with your local guide. Enjoy your private tour of the Old City’s most impressive sights:
+
+* Lyabi-Hauz ensemble, holding the largest artificial reservoir of medieval Bukhara (14th-17th centuries). This ensemble includes some of the largest madrasahs in the city: the Khanaka Madrasah, Kukeldash Madrasah and Nadir Divan Beghi Madrasah (all 16th century);
+* Magoki-Attori the oldest mosque in Bukhara (12th century);
+* Trade Domes - experience the same markets where silk, spices, and ceramics were traded in Marco Polo’s time;
+* Poi Kalyan Ensemble (12th-16th centuries), consisting of the Kalyan Minaret, Kalyan Mosque, Amir-Alimkhan Madrasah and Miri-Arab Madrasah;
+* Ulugbek Madrasah (15th century) and Abdulazizkhan Madrasah (17th century), relatively untouched yet impressive religious schools;
+* Ark Fortress the ancient center of Bukharan statehood and currently home to a small museum;
+* Bolo-Khauz Complex, consisting of an artfully decorated 18th century mosque, a minaret and reservoirs that once provided water for the entire city;
+* Samanids Mausoleum (9th-10th centuries), believed to be the most ancient brick building in Central Asia.
+
+Tour duration: 6-7 hours. Overnight in Bukhara.`],
+["Окрестности Бухары (4 ч, check-out)",`After breakfast, check-out from the hotel and continue exploring the outskirts and hidden gems of Bukhara with your local guide and driver. Visit the following sites:
+
+* Chor Minor ("Four Minarets"), an unusual 18th-century madrassah built by the wealthy merchant Niyazkul. Its four distinctive minarets are believed to symbolize the four major religions of the world;
+* Sitorai Mokhi-Khosa, the Summer Residence of the Last Emir of Bukhara (19th-20th centuries), a remarkable palace combining elegant Oriental traditions with Russian and European architectural styles, surrounded by beautiful gardens;
+* Bakhautdin Naqshband Mausoleum (16th century), one of the most important pilgrimage sites in Central Asia, dedicated to the founder of the Naqshbandi Sufi Order. The complex includes a mausoleum, mosque, museum, and sacred pond;
+* Chor-Bakr Necropolis (16th century), known as the "City of the Dead," a peaceful memorial complex featuring family mausoleums, courtyards, and religious buildings belonging to the influential Juybari dynasty;
+* Fayzulla Khodjaev House Museum, the former residence of a wealthy Bukharan merchant and statesman, showcasing the traditional residential architecture, elegant courtyards, and authentic interiors of old Bukhara.
+
+Tour duration: approximately 4 hours.
+Overnight in Bukhara.`],
+["Свободный день",`After breakfast, spend your day exploring Bukhara at your own leisure. Take time to wander through the quiet residential streets (mahallas), shop for unique handicrafts, or relax at local tea houses. Recommended self-guided activities for today:
+
+* Stroll through the authentic Jewish Quarter and visit the 16th-century Bukhara Synagogue to experience the city's rich multicultural history;
+* Visit the traditional Bozori Kord Hammam, a 16th-century bathhouse, for an authentic local spa and massage experience;
+* Explore local artisan workshops inside the Trade Domes to observe miniature painting, wood carving, metal chasing, and Suzani embroidery crafting;
+* Relax at a traditional Chaikhana (teahouse) around the Lyabi-Hauz pond, sipping green tea and enjoying local sweets while soaking in the atmosphere;
+* Enjoy a sunset panoramic view of the Old City and Poi Kalyan complex from the observation platform of the Bukhara Water Tower;
+* Taste regional culinary specialties independently, such as authentic Bukharan Plov (Oshi Sofi) at a local house or restaurant.
+
+Overnight in Bukhara.`]],
+"Хива":[
+["Пешеходная экскурсия Ичан-Кала (6 ч)",`Your local guide will meet you at hotel and start walking tour of Khiva (Ichan-Kala Fortress):
+
+* Begin your excursion from Ota Darvoza gate of Itchan Kala;
+* Continue to Kalta Minor Tower, once destined to be one of the tallest minarets in Central Asia
+* Next sight is Kunya-Ark Fortress, the inner citadel;
+* Muhammad Amin-Khan and Muhammad Rahim-Khan Madrasah;
+* Juma Mosque, built with 212 wooden columns and a minaret 32.5 m high;
+* Tash-Hauli Palace (Stone Courtyard Palace);
+* Minaret and madrasah of Islam Khodja, the vizier of the last khan;
+* Necropolis of Pahlavan Mahmud, the ancient religious center of Ichan Kala.
+
+Tour duration: 6 hours. Overnight in Khiva.`],
+["Дворцы и Харрот (4–5 ч)",`After breakfast, your guide and driver will pick you up from your hotel to continue your Khiva city tour. Your private tour will include:
+
+* Visit to the Nurullaboy Palace, an elegant royal residence featuring a unique blend of Oriental and European architectural styles;
+* Excursion to the Khorezm Mamun Academy Museum, home to a rich collection of historic books, manuscripts, and exhibits dedicated to the region’s scientific and cultural heritage;
+* Visit to the Khiva Ice-House (Muzxona), a traditional ice storage facility located near the Bol-Hauz Reservoir;
+* Drive to the Toza-Bog Palace, the former summer residence of Muhammad Rakhim Khan II, surrounded by peaceful gardens;
+* Continue to the Kharrot Tourist Complex, located on the shores of Eshonkul Lake in the Karakum Desert, where you can enjoy the tranquil desert landscape.
+
+Return to Ichan Kala for a leisurely walk along its main street and time for souvenir shopping.
+Tour duration: 4–5 hours. Overnight in Khiva.`],
+["Крепости Хорезма (7 ч)",`In the morning, your guide and driver will pick you up from your hotel in Khiva and begin a full-day excursion to the ancient fortresses of Khorezm, located in the Kyzylkum Desert. The journey to the Ellik Kala (Fifty Fortresses) region takes approximately 2 hours one way. During the tour, you will explore some of the most remarkable archaeological monuments of ancient Khorezm:
+
+* Kyzyl-Kala, or the Red Fortress, a remarkable remnant of the ancient Kushan period and one of the best-preserved fortresses in the region;
+* Toprak-Kala, or the Earthen Fortress, one of the most impressive monuments of ancient Khorezm. This vast archaeological site once served as the capital of Khorezm in the 3rd century AD and is notable for its monumental architecture;
+* Kirk-Kyz Kala, or the Fortress of Forty Virgins, an ancient fortress dating from the 1st–6th centuries AD, believed to have formed part of the defensive system of ancient Khorezm;
+* Ayaz-Kala, one of the largest and most spectacular fortress complexes in Khorezm, dating back to the 2nd century AD. Here you will also have an opportunity to visit a traditional yurt camp and enjoy a camel ride.
+
+During the excursion, your professional local guide will introduce you to the history, archaeology and legends surrounding these remote fortresses, giving you a deeper understanding of the ancient civilizations that once flourished in this region.
+Tour duration: approximately 7 hours. Lunch at the Yurt Camp.
+Return to Khiva and drop-off at hotel.`]],
+"Фергана":[
+["День 1: Ташкент – Коканд – Риштан – Фергана",`Tashkent-Kokand-Rishtan-Fergana
+After breakfast, transfer to Tashkent South Railway Station to board the morning train to Kokand. Upon arrival, you will be met by your guide and begin your exploration of Kokand, the former capital of the Kokand Khanate. Your private tour will include:
+
+* Excursion to the Palace of Khudoyar Khan, the city's most impressive landmark, renowned for its magnificent architecture and richly decorated interiors;
+* Visit to the Jami Mosque, the historic centerpiece of Chorsu Square, featuring an elegant wooden-columned prayer hall;
+* Tour of the Norbutabiy Madrasah, an 18th-century Islamic school that continues to serve its original purpose today.
+
+Continue by road to Rishtan, the famous center of Uzbek ceramics. Visit the home and workshop of renowned ceramic masters Rustam Usmanov and Alisher Nazarov, whose works are displayed in museums and exhibitions around the world. Your visit will include:
+
+* Tour of the pottery workshop;
+* Introduction to the traditional ceramic-making process;
+* Viewing a collection of distinctive Rishtan ceramics.
+
+Continue the drive to Fergana. Upon arrival, check in at your hotel.
+Optional activity: Participate in a hands-on ceramics master class with a local artisan in Rishtan (available at an additional cost of USD 10 per person).
+Overnight in Fergana.`],
+["День 2: Фергана – Маргилан – Ташкент",`Fergana - Margilan - Tashkent
+After breakfast, your guide and driver will pick you up from your hotel to continue your journey through the Fergana Valley. Your private tour will include:
+
+* Visit to Kumtepa Bazaar, the largest traditional market in the Fergana Valley, where local farmers and craftsmen sell fresh produce, textiles, and handmade goods (operates on Thursdays and Sundays only);
+* Drive to Margilan, Uzbekistan’s renowned center of silk production;
+* Visit to the Said Akhmad-Khoja Madrasah, now home to local artisans producing handmade carpets and silk products;
+* Walk through the Margilan Artisan Center – Gold Silk, where you can learn about traditional silk craftsmanship;
+* Tour of the Yodgorlik Silk Factory, where you will observe the traditional silk weaving process using the famous Ikat technique and have the opportunity to purchase authentic handmade khan-atlas fabric.
+
+After the sightseeing tour, drive back to Tashkent via the scenic Kamchik Pass, offering spectacular panoramic views of the surrounding mountains.
+Upon arrival in Tashkent, transfer to your hotel.
+Overnight in Tashkent.`]],
+"Юрта":[
+["День 1: Самарканд – Нурата – юрточный лагерь",`Samarkand - Nurata - Yurt Camp
+Your driver will meet you at your Samarkand hotel in the morning to begin the drive to a yurt camp in the Kyzylkum Desert (Red Sand Desert).
+
+* Along the way, stop in Nurata village (200 km, 3 hrs) to visit a local mosque known for its holy spring waters and to explore the ruins of a fortress built by Alexander the Great.
+* Continue to the yurt camp (70 km, 1 hr).
+* After arriving to the camp, you’ll have free time for camel rides, resting or walking among the dunes.
+* Enjoy dinner around a campfire in the evening while a Kazakh akin (skilled improvised singer) entertains with folk songs.
+
+Overnight in the yurt after star gazing in the endless desert sky.
+
+Meals provided: dinner*
+Optional Activity:
+From the yurt camp, take a short camel ride to the nearby village Dungalak (1.5 km, 30 min), where you’ll help to bake traditional naan bread. Walk around the village to get a glimpse of daily life before returning to the camp (Price on demand).`],
+["День 2: Юрта – Айдаркуль – Сармыш – Гиждуван – Бухара",`Yurt camp/Aydarkul Lake - Sarmish - Gijduvan - Bukhara
+In the morning visit Aydarkul Lake (5 km). Walk along the shore or go for a swim in its clear waters.
+
+* Have lunch at the yurt camp before leaving for Bukhara via Sarmish and Gijduvan.
+* In Sarmish (150 km, 2 hrs), visit an open-air museum of petroglyphs*.
+* Gijduvan (100 km, 1 hr 30 min) is a small town whose traditional crafts and ceramics have been sought after in Central Asia for centuries due to their quality and colorful, decorative style.
+* Visit the ceramic museum and workshop before continuing to Bukhara (50 km, 50 min).
+
+Arrive in Bukhara for drop-off at your hotel or the train station.
+
+Meals provided: breakfast, picnic lunch
+*Note: It is not possible to visit an open-air museum of petroglyphs Sarmish in the summer period as there is a Kid\`s camp in the territory.
+**Note: While filling meals are provided at the yurt camp, all snacks should be bought in advance and brought with you, as the yurt camp is in a remote area with no shops or vending machines available.`]],
+"Трансферы":[
+["Аэропорт → отель",`Upon arrival at the airport, you will be met by a driver in the arrivals hall with a sign of your name and transferred to your hotel.`],
+["Ж/д вокзал → отель",`Upon arrival at the railway station, you will be met by a driver with a sign of your name and transferred to your hotel.`],
+["Отель → аэропорт",`After breakfast, check-out from the hotel. Your driver will pick you up from the hotel lobby and transfer you to the airport in time for your departure flight.
+
+End of services.`],
+["Отель → ж/д вокзал",`After breakfast, check-out from the hotel. Your driver will pick you up from the hotel lobby and transfer you to the railway station in time for your train departure.
+
+End of services.`],
+["Отель → граница",`After breakfast, check-out from the hotel. Your driver will pick you up from the hotel lobby and transfer you to the border. Your driver will assist you up to the border checkpoint.
+
+End of services.`],
+["Граница → отель",`Upon crossing the border, you will be met by a driver with a sign of your name and transferred to your hotel. Check-in at the hotel.`]]
+};
+const ITEMS=[["Accommodation in twin/double rooms with breakfast",1],["Private transportation with driver as per itinerary",1],["English-speaking guide services",1],["Entrance fees to the sites as per itinerary",1],["Train tickets as per itinerary",0],["Domestic flights",0],["Lunches and dinners (unless mentioned)",0],["Bottled water",0],["Airport transfers",1],["International flights",0],["Visa fees",0],["Travel insurance",0],["Tips and personal expenses",0]];
+const FOOT=[
+["Проживание",`Accommodation:
+Tashkent (2 nights)
+Standard - Inspira-S, ATECA, Elements, Wyndham Garden or similar
+Bukhara (1 night)
+Standard - Makon Art, Labi Rud, Caravansaray Rashid, Minzifa or similar
+Samarkand (1 night)
+Standard - Shohjahon Palace, Wellfort, Aliz Boulevard, City or similar
+Khiva (2 nights)
+Standard - Bibixojar, Malika Kheivak, Isaxoqxoja, Saroy, Turon or similar
+Nukus (2 nights)
+Standard - Pana , Jipek Joli Art, Jipek Joli, Damir, Citizen, Ideal, Fayz, Marmaris or similar
+Fergana (1 night)
+Asia Fergana, Grand Fergana, Fergana Deluxe, Saroy Garden or similar
+Nurata (1 night)
+Guesthouse (dinner, breakfast, lunch), Hayot-Nazrullo, Ashraf-Rahmat, Sentyob-Shodiboy, Uhum-Ulugbek or similar
+Yurts (1 night)
+Aydar Yurts, Safary Yurts, AyazKala Yurts, Muynak Yurt - (dinner, breakfast, lunch) or similar`],
+["Адрес отелей",`Please send us the exact address of your hotels.`],
+["Номера рейсов",`Kindly provide more detailed information, including the flight numbers for your arrival in Tashkent. If this information is not yet available, please send it to us later once your tickets have been purchased.`],
+["Паспортные данные",`Please send detailed passport information, we need it to book tickets (full name, passport ID, expiry date, date of birth, nationality, gender).`],
+["Виза: Оман",`Omani citizens are eligible for visa-free entry to Uzbekistan for stays of up to 30 days. You may verify the latest visa requirements on the official Uzbekistan e-Visa portal: https://e-visa.gov.uz/application`],
+["Виза: Индия",`Visa for tourists originating from India:
+You will need to obtain a tourist e-visa before your trip. You can apply online through the official website at https://e-visa.gov.uz/application. The processing time is usually 2–3 business days. The visa is valid for 90 days from the date of approval and allows a stay of up to 30 days in Uzbekistan. The fee for a single-entry tourist e-visa is USD 20.`],
+["Оплата",`To confirm your booking for the tour, we require prepayment. It can be made online by Visa/Mastercard or by bank transfer:
+
+* If you make the payment with a VISA/Mastercard online, we will send a link (card processing fee of 3% will be covered by our company).
+* If you make the payment by bank transfer, we will send you an invoice with our bank details (in this case, you will have to cover SWIFT and bank transaction fee of about 40 USD).`],
+["Завершение",`Please do not hesitate to contact me if you have any questions.
+
+*We are a specialized tour operator focusing on Central Asia, with over 20 years of experience in organizing tours and travel services across the region.
+If you would like to explore Uzbekistan’s neighboring countries, we would be delighted to arrange everything for you. With our regional expertise and reliable network of local partners, we ensure that every detail is carefully coordinated and your entire journey runs like clockwork.`]];
+
+let S;try{S=JSON.parse(localStorage.getItem('tg'))}catch(e){}
+S=S||{days:[],items:ITEMS.map(x=>({t:x[0],on:!!x[1]})),foot:FOOT.map(x=>({n:x[0],t:x[1],on:false}))};
+(()=>{ // подтягиваем новые тексты в уже сохранённые данные
+  const old=S.foot||[];
+  const OLD={"Проживание":`Accommodation:
+Tashkent (2 nights)
+Standard - Inspira-S, ATECA, Elements, Wyndham Garden or similar
+Bukhara (1 night)
+Standard - Makon Art, Labi Rud, Caravansaray Rashid, Minzifa or similar
+Samarkand (1 night)
+Standard - Shohjahon Palace, Wellfort, Aliz Boulevard, City or similar`,"Паспортные данные":"Please send detailed passport information, we need it to book tickets (full name, passport ID, expiry date, date of birth, nationality).","Завершение":"Please do not hesitate to contact me if you have any questions."};
+  const m=FOOT.map(x=>{const o=old.find(q=>q.n===x[0]);if(!o)return{n:x[0],t:x[1],on:false};if(OLD[x[0]]&&o.t===OLD[x[0]])o.t=x[1];return o});
+  old.forEach(o=>{if(!FOOT.some(x=>x[0]===o.n))m.push(o)});
+  S.foot=m;
+})();
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const save=()=>{try{localStorage.setItem('tg',JSON.stringify(S))}catch(e){}};
+const pd=s=>{const m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s.trim());return m?new Date(Date.UTC(+m[3],m[2]-1,+m[1])):null};
+const fd=d=>String(d.getUTCDate()).padStart(2,'0')+'.'+String(d.getUTCMonth()+1).padStart(2,'0')+'.'+d.getUTCFullYear();
+const wd=s=>{const d=pd(s);return d?d.toLocaleDateString('en-US',{weekday:'long',timeZone:'UTC'}):'?'};
+const sortDays=()=>S.days.sort((a,b)=>(pd(a.date)||0)-(pd(b.date)||0));
+const opts='<option value="">— добавить шаблон —</option>'+Object.entries(T).map(([c,l])=>`<optgroup label="${c}">`+l.map((x,i)=>`<option value="${c}|${i}">${x[0]}</option>`).join('')+'</optgroup>').join('');
+
+function addDay(){
+  let v=$('nd').value.trim();
+  if(!v&&S.days.length){const l=pd(S.days[S.days.length-1].date);if(l){l.setUTCDate(l.getUTCDate()+1);v=fd(l)}}
+  if(!pd(v)){alert('Введите дату в формате 08.10.2026');return}
+  S.days.push({date:v,text:''});sortDays();$('nd').value='';save();render();
+}
+function pick(i,v){if(!v)return;const[c,k]=v.split('|');const t=T[c][+k][1],cur=S.days[i].text.trim();S.days[i].text=cur?cur+'\n\n'+t:t;save();render()}
+function insertAfter(i){
+  const b=pd(S.days[i].date);if(!b){alert('Сначала укажите корректную дату у этого дня (ДД.ММ.ГГГГ)');return}
+  for(let j=i+1;j<S.days.length;j++){const d=pd(S.days[j].date);if(d){d.setUTCDate(d.getUTCDate()+1);S.days[j].date=fd(d)}}
+  b.setUTCDate(b.getUTCDate()+1);
+  S.days.splice(i+1,0,{date:fd(b),text:''});save();render();
+}
+function newProg(){if(confirm('Начать новую программу? Все дни и изменения будут очищены.')){try{localStorage.removeItem('tg')}catch(e){}location.reload()}}
+function exportWord(){
+  if($('prev').querySelector('.mut')){alert('Нечего экспортировать — добавьте дни тура');return}
+  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Tour program</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.4}p{margin:0 0 6pt}ul{margin:0 0 8pt}.h{font-weight:bold;margin-top:12pt}</style></head><body>'+$('prev').innerHTML+'</body></html>';
+  const blob=new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'});
+  const f=S.days.length?S.days[0].date.replace(/\./g,'-'):'program';
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Tour-program-'+f+'.doc';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function addItem(){const v=$('ni').value.trim();if(!v)return;S.items.push({t:v,on:true});$('ni').value='';save();render()}
+
+function render(){
+  $('days').innerHTML=S.days.map((d,i)=>`<div class="day"><b>${esc(d.date)} (${wd(d.date)}) Day ${i+1}</b>
+   <div class="row"><input type="text" value="${esc(d.date)}" style="width:120px" onchange="S.days[${i}].date=this.value;sortDays();save();render()">
+   <select class="g" onchange="pick(${i},this.value)">${opts}</select><button onclick="insertAfter(${i})" title="Вставить день после этого, даты следующих дней сдвинутся на +1">＋ День после</button><button onclick="S.days[${i}].text='';save();render()">Очистить</button><button class="d" onclick="S.days.splice(${i},1);save();render()">Удалить</button></div>
+   <textarea oninput="S.days[${i}].text=this.value;save();prev()" placeholder="Выберите шаблон или напишите текст">${esc(d.text)}</textarea></div>`).join('');
+  $('items').innerHTML=S.items.map((x,i)=>`<div class="chk"><input type="checkbox" ${x.on?'checked':''} onchange="S.items[${i}].on=this.checked;save();prev()"><input type="text" value="${esc(x.t)}" oninput="S.items[${i}].t=this.value;save();prev()"><button class="d" onclick="S.items.splice(${i},1);save();render()">×</button></div>`).join('');
+  $('foot').innerHTML=S.foot.map((x,i)=>`<div class="foot"><label class="chk"><input type="checkbox" ${x.on?'checked':''} onchange="S.foot[${i}].on=this.checked;save();prev()"><b>${x.n}</b></label><textarea oninput="S.foot[${i}].t=this.value;save();prev()">${esc(x.t)}</textarea></div>`).join('');
+  prev();
+}
+function body(t){
+  let h='',ul=false;
+  t.trim().split('\n').forEach(l=>{
+    if(/^\*\s/.test(l)){if(!ul){h+='<ul>';ul=true}h+='<li>'+esc(l.replace(/^\*\s+/,''))+'</li>'}
+    else{if(ul){h+='</ul>';ul=false}if(l.trim())h+='<p>'+esc(l)+'</p>'}
+  });
+  return h+(ul?'</ul>':'');
+}
+function prev(){
+  let h=S.days.map((d,i)=>`<p class="h">${esc(d.date)} (${wd(d.date)}) Day ${i+1}</p>`+body(d.text)).join('');
+  if(S.items.length){
+    const l=(on)=>S.items.filter(x=>x.on==on&&x.t.trim()).map(x=>'* '+x.t).join('\n');
+    const a=l(true),b=l(false);
+    if(a)h+='<p class="h">Included:</p>'+body(a);
+    if(b)h+='<p class="h">Not included:</p>'+body(b);
+  }
+  h+=S.foot.filter(x=>x.on).map(x=>'<div style="margin-top:1em">'+body(x.t)+'</div>').join('');
+  $('prev').innerHTML=h||'<span class="mut">Добавьте дни тура слева.</span>';
+}
+function copyAll(){
+  const r=document.createRange();r.selectNodeContents($('prev'));
+  const s=getSelection();s.removeAllRanges();s.addRange(r);
+  let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+  s.removeAllRanges();
+  $('msg').textContent=ok?'Скопировано — вставьте в письмо':'Не удалось скопировать, выделите текст вручную';
+}
+render();
+</script></body></html>
